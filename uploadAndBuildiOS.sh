@@ -1,7 +1,20 @@
 #!/bin/bash
 clear
 
-MODE="dev";  
+# ================================
+# SOURCE ENVIRONMENT
+# ================================
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  source "$ENV_FILE"
+  set +a
+else
+  echo "❌ .env not found at $ENV_FILE"
+  exit 1
+fi
+
 IS_DARWIN=$([ -x "$(command -v sw_vers)" ] && echo true || echo false)
 
 # Set RAID_X_HOME based on OS
@@ -30,23 +43,21 @@ else
   exit 1
 fi
 
-set_header "Upload Project"
+set_header "Upload & Build iOS"
 
 start=$(start_time)
-
 
 # ================================
 # CONFIG SETUP
 # ================================
 LOCAL_ZIP="project-backup.zip"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-CLIENT_ID="TESTER"
 BUILD_ID="UID_${CLIENT_ID}_${TIMESTAMP}"
 
-# Mac VM
-SERVER_IP="8.30.153.32"
-SERVER_USER="Rafael"
-SERVER_PASS="38nRWm1y"
+# Mac VM (from .env)
+SERVER_IP="$MAC_SERVER_IP"
+SERVER_USER="$MAC_SERVER_USER"
+SERVER_PASS="$MAC_SERVER_PASS"
 
 # Remote Mac VM Paths
 REMOTE_BASE_DIR="${RAIDX_PATH}/Clients"
@@ -54,20 +65,12 @@ REMOTE_DIR="${REMOTE_BASE_DIR}/${CLIENT_ID}/${BUILD_ID}"
 REMOTE_TOOLS_DIR="${RAIDX_PATH}/Tools"
 REMOTE_SCRIPT="main_build.sh"
 
-# Android Certs
-ANDROID_ACCOUNT_ID="7619593200483522519"
-ANDROID_EMAIL="dev.apps@sweetrush.com"
-ANDROID_KEYSTORE="${REMOTE_DIR}/certs/google/elsoapp.keystore.jks"
-ANDROID_KEYSTORE_PASS="QHiH97VVlWRqR5ROMDn9"
-ANDROID_ALIAS="key0"
-
-# iOS Certs and Profile Paths
-P12_PATH="${REMOTE_DIR}/certs/ios/iOS_Dist_Key.p12"
-P12_PASSWORD="#SweetRush@"
-PROVISION_ID="ELSO Staging AppStore/TestFlight"
-PROVISION_NAME="ELSO_Staging_AppStoreTestFlight"
+# iOS Certs and Profile Paths (from .env filenames)
+P12_PATH="${REMOTE_DIR}/certs/ios/${IOS_P12_FILENAME}"
+P12_PASSWORD="$IOS_P12_PASSWORD"
+PROVISION_ID="$IOS_PROVISION_ID"
+PROVISION_NAME="$IOS_PROVISION_NAME"
 PROVISION_PATH="${REMOTE_DIR}/certs/ios/profiles/${PROVISION_NAME}.mobileprovision"
-IS_UPLOADING="false"
 
 # === Requirements check ===
 if ! command -v sshpass >/dev/null 2>&1; then
@@ -125,16 +128,6 @@ else
     echo "🆔 BUILD_ID: ${BUILD_ID}"
 fi
 
-# echo "👉  To remove this build:"
-# echo "./removeBuild.sh $CLIENT_ID $BUILD_ID"
-# REMOVE_CMD="./removeBuild.sh"
-# if [[ ! -x "$REMOVE_CMD" ]]; then
-#   echo "❌ Error: $REMOVE_CMD not found or not executable!"
-#   exit 1
-# fi
-# # === Remove current build on the VPS ===
-# "$REMOVE_CMD" "$CLIENT_ID" "$BUILD_ID"
-
 echo "✅ Disposing build files..."
 sshpass -p "$SERVER_PASS" ssh -t "$SERVER_USER@$SERVER_IP" \
   "$RAIDX_SCRIPTS_PATH/build_dispose.sh" \
@@ -156,6 +149,3 @@ echo "🎉 Build pipeline complete"
 
 elapsed=$(end_time "$start")
 echo "Elapsed: $elapsed"
-
-
-

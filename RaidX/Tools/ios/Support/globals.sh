@@ -4,13 +4,13 @@
 # Detect if running on MacOS
 export IS_DARWIN=$([ -x "$(command -v sw_vers)" ] && echo true || echo false)
 
-# Server credentials
-export SERVER_IP="8.30.153.32"
-export SERVER_PORT="22"
-export SERVER_USER="Rafael"
-export SERVER_PASS="38nRWm1y"
-export KEYCHAIN_NAME="build.keychain"
-export KEYCHAIN_PASSWORD="password"
+# Server credentials (from .env with fallback defaults)
+export SERVER_IP="${MAC_SERVER_IP:-8.30.153.32}"
+export SERVER_PORT="${MAC_SERVER_PORT:-22}"
+export SERVER_USER="${MAC_SERVER_USER:-Rafael}"
+export SERVER_PASS="${MAC_SERVER_PASS:-38nRWm1y}"
+export KEYCHAIN_NAME="${KEYCHAIN_NAME:-build.keychain}"
+export KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-password}"
 
 # Set HOME/USER PATH based on system macOS | Win | WSL2
 export USER_HOME="/Users/$SERVER_USER"
