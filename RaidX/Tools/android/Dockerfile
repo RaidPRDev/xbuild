@@ -29,9 +29,10 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
 RUN yes | sdkmanager --licenses \
     && sdkmanager \
        "platform-tools" \
+       "platforms;android-35" \
        "platforms;android-34" \
-       "build-tools;34.0.0" \
-       "build-tools;33.0.2"
+       "build-tools;35.0.0" \
+       "build-tools;34.0.0"
 
 # Install Capacitor CLI globally
 RUN npm install -g @capacitor/cli

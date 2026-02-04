@@ -23,6 +23,13 @@ npm run build
 # 3. Sync with Capacitor Android
 echo "🔄 Syncing web assets into Android project..."
 npx cap telemetry off
+
+# Add Android platform if not already present
+if [ ! -d "android" ]; then
+  echo "📱 Adding Android platform..."
+  npx cap add android
+fi
+
 npx cap update android
 npx cap sync android
 

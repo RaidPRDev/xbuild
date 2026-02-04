@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for f in .env build.sh uploadAndBuildiOS.sh uploadAndBuildAndroid.sh RaidX/Tools/android/Dockerfile RaidX/Tools/android/main_build.sh RaidX/Tools/android/Support/globals.sh RaidX/Tools/android/Support/Scripts/*.sh)",
+      "Bash(do sed -i 's/\\\\r$//' \"$f\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(cd \"D:\\\\dev\\\\raidpr\\\\apps\\\\RaidXAppBuilder\"\" && find . -type f -name \".env* \")",
+      "Bash(tree:*)",
+      "Bash(for:*)"
+    ]
+  }
+}

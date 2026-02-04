@@ -64,11 +64,23 @@ echo "  🔹 CLOUD_HOST=$CLOUD_HOST"
 echo "  🔹 REMOTE_DIR=$REMOTE_DIR"
 
 # ================================
-# STEP 1: Create remote folder
+# STEP 1: Create remote folders and sync tools
 # ================================
 echo ""
-echo "📂 Creating remote folder: $REMOTE_DIR"
-ssh -i "$SSH_KEY" "$CLOUD_USER@$CLOUD_HOST" "mkdir -p '$REMOTE_DIR'"
+echo "📂 Creating remote folders..."
+ssh -i "$SSH_KEY" "$CLOUD_USER@$CLOUD_HOST" "mkdir -p '$REMOTE_DIR' '$REMOTE_TOOLS_DIR'"
+
+echo "🔄 Syncing Android tools to server..."
+LOCAL_TOOLS_DIR="$SCRIPT_DIR/RaidX/Tools/android"
+ssh -i "$SSH_KEY" "$CLOUD_USER@$CLOUD_HOST" "mkdir -p '$REMOTE_TOOLS_DIR/.docker' '$REMOTE_TOOLS_DIR/Support/Scripts'"
+scp -i "$SSH_KEY" -r "$LOCAL_TOOLS_DIR/Dockerfile" "$LOCAL_TOOLS_DIR/main_build.sh" "$CLOUD_USER@$CLOUD_HOST:$REMOTE_TOOLS_DIR/"
+scp -i "$SSH_KEY" -r "$LOCAL_TOOLS_DIR/.docker/"* "$CLOUD_USER@$CLOUD_HOST:$REMOTE_TOOLS_DIR/.docker/"
+scp -i "$SSH_KEY" -r "$LOCAL_TOOLS_DIR/Support/globals.sh" "$CLOUD_USER@$CLOUD_HOST:$REMOTE_TOOLS_DIR/Support/"
+scp -i "$SSH_KEY" -r "$LOCAL_TOOLS_DIR/Support/Scripts/"* "$CLOUD_USER@$CLOUD_HOST:$REMOTE_TOOLS_DIR/Support/Scripts/" &
+
+pid=$!
+spinner_progress $pid "syncing tools"
+wait $pid
 
 # ================================
 # STEP 2: Upload zip file
@@ -145,10 +157,44 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ Build failed CLIENT_ID: $CLIENT_ID"
     echo "🆔 BUILD_ID: ${BUILD_ID}"
+    exit 1
 fi
 
 # ================================
-# STEP 6: Cleanup remote build files
+# STEP 6: Copy artifacts to downloads directory
+# ================================
+DOWNLOADS_DIR="/root/RaidX/downloads/${CLIENT_ID}/${BUILD_ID}"
+AAB_SRC="${REMOTE_DIR}/android/app/build/outputs/bundle/release/app-release.aab"
+APK_SRC="${REMOTE_DIR}/android/app/build/outputs/apk/release/app-release.apk"
+
+# Format app name: lowercase, spaces to underscores
+APP_NAME_FMT=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
+BUILD_DATE=$(date +%Y_%m_%d)
+ARTIFACT_NAME="${APP_NAME_FMT}_${BUILD_DATE}"
+
+echo "📦 Publishing build artifacts..."
+ssh -i "$SSH_KEY" "$CLOUD_USER@$CLOUD_HOST" "
+  mkdir -p '$DOWNLOADS_DIR'
+  [ -f '$AAB_SRC' ] && cp '$AAB_SRC' '$DOWNLOADS_DIR/${ARTIFACT_NAME}.aab' && echo 'Copied AAB'
+  [ -f '$APK_SRC' ] && cp '$APK_SRC' '$DOWNLOADS_DIR/${ARTIFACT_NAME}.apk' && echo 'Copied APK'
+"
+
+# ================================
+# STEP 7: Ensure file server is running
+# ================================
+echo "🌐 Ensuring xbuilds file server is running..."
+ssh -i "$SSH_KEY" "$CLOUD_USER@$CLOUD_HOST" "
+  if ! docker stack ls | grep -q xbuilds; then
+    echo 'Deploying xbuilds file server...'
+    mkdir -p /root/RaidX/downloads
+    docker stack deploy -c /root/RaidX/Tools/android/.docker/xbuilds.yml xbuilds
+  else
+    echo 'File server already running'
+  fi
+"
+
+# ================================
+# STEP 8: Cleanup remote build files
 # ================================
 echo "🧹 Disposing build files..."
 ssh -i "$SSH_KEY" "$CLOUD_USER@$CLOUD_HOST" "
@@ -165,6 +211,10 @@ fi
 
 echo ""
 echo "🎉 Android build pipeline complete"
+echo ""
+echo "📥 Download artifacts:"
+echo "  AAB: https://xbuilds.raidpr.com/${CLIENT_ID}/${BUILD_ID}/${ARTIFACT_NAME}.aab"
+echo "  APK: https://xbuilds.raidpr.com/${CLIENT_ID}/${BUILD_ID}/${ARTIFACT_NAME}.apk"
 
 elapsed=$(end_time "$start")
 echo "Elapsed: $elapsed"
