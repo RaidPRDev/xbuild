@@ -4,11 +4,11 @@
 # Detect if running on MacOS
 export IS_DARWIN=$([ -x "$(command -v sw_vers)" ] && echo true || echo false)
 
-# Server credentials (from .env with fallback defaults)
-export SERVER_IP="${MAC_SERVER_IP:-8.30.153.32}"
+# Server credentials (from .env - no hardcoded fallbacks for security)
+export SERVER_IP="${MAC_SERVER_IP:?MAC_SERVER_IP not set in .env}"
 export SERVER_PORT="${MAC_SERVER_PORT:-22}"
-export SERVER_USER="${MAC_SERVER_USER:-Rafael}"
-export SERVER_PASS="${MAC_SERVER_PASS:-38nRWm1y}"
+export SERVER_USER="${MAC_SERVER_USER:?MAC_SERVER_USER not set in .env}"
+export SERVER_PASS="${MAC_SERVER_PASS:?MAC_SERVER_PASS not set in .env}"
 export KEYCHAIN_NAME="${KEYCHAIN_NAME:-build.keychain}"
 export KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-password}"
 
@@ -49,9 +49,10 @@ export IOS_CONFIGURATION="Release"
 if [[ "$IS_DARWIN" = "true" ]]; then
   # Load RaidX Remote Paths
   source "$RAIDX_SUPPORT_PATH/includes.sh"
-else 
-  # Load RaidX Local Paths
-  RAID_X_SCRIPTS="/mnt/e/vms/macos/raidx/RaidX/Tools/ios/Support/Scripts"
+else
+  # Load RaidX Local Paths (relative to this script's location)
+  GLOBALS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  RAID_X_SCRIPTS="$GLOBALS_SCRIPT_DIR/Scripts"
   source "$RAID_X_SCRIPTS/utils/general.sh"
   source "$RAID_X_SCRIPTS/utils/timers.sh"
   source "$RAID_X_SCRIPTS/utils/visual_loaders.sh"

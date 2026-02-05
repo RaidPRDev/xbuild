@@ -1,3 +1,10 @@
+
+Run in WSL or Linux.
+```sh
+./build.sh
+```
+
+
 Libraries
 - Node
 - rbenv

@@ -1,10 +1,25 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 IS_DARWIN=$([ -x "$(command -v sw_vers)" ] && echo true || echo false)
 if [ "$IS_DARWIN" = true ]; then
   RAID_X_HOME="$HOME/RaidX"
 else
-  RAID_X_HOME="/mnt/e/vms/macos/raidx/RaidX"
+  # fun.sh is inside RaidX/Tools, so go up 1 level to RaidX
+  RAID_X_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+
+# ================================
+# SOURCE ENVIRONMENT
+# ================================
+ENV_FILE="$RAID_X_HOME/../.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  source "$ENV_FILE"
+  set +a
+else
+  echo "❌ .env not found at $ENV_FILE"
+  exit 1
 fi
 
 GLOBALS_FILE="$RAID_X_HOME/Tools/ios/Support/globals.sh"

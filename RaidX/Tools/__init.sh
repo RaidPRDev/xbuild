@@ -3,10 +3,10 @@ set -euo pipefail
 
 clear
 
-echo 'export PATH="/Users/Rafael/RaidX/Tools:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/RaidX/Tools:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 
-echo 'export PATH="/Users/Rafael/RaidX/Tools:$PATH"' >> ~/.bash_profile
+echo 'export PATH="$HOME/RaidX/Tools:$PATH"' >> ~/.bash_profile
 source ~/.bash_profile
 
 TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"

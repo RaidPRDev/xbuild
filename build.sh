@@ -1,11 +1,26 @@
 #!/bin/bash
 clear
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# ================================
+# SOURCE ENVIRONMENT
+# ================================
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  source "$ENV_FILE"
+  set +a
+else
+  echo "❌ .env not found at $ENV_FILE"
+  exit 1
+fi
+
 IS_DARWIN=$([ -x "$(command -v sw_vers)" ] && echo true || echo false)
 if [ "$IS_DARWIN" = true ]; then
   RAID_X_HOME="$HOME/RaidX"
 else
-  RAID_X_HOME="/mnt/e/vms/macos/raidx/RaidX"
+  RAID_X_HOME="$SCRIPT_DIR/RaidX"
 fi
 
 # ================================

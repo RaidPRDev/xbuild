@@ -8,7 +8,9 @@
       "Bash(cd \"D:\\\\dev\\\\raidpr\\\\apps\\\\RaidXAppBuilder\"\" && find . -type f -name \".env* \")",
       "Bash(tree:*)",
       "Bash(for:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(tailscale status:*)",
+      "Bash(ping:*)"
     ]
   }
 }

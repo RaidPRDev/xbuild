@@ -21,7 +21,7 @@ IS_DARWIN=$([ -x "$(command -v sw_vers)" ] && echo true || echo false)
 if [ "$IS_DARWIN" = true ]; then
   RAID_X_HOME="$HOME/RaidX"
 else
-  RAID_X_HOME="/mnt/e/vms/macos/raidx/RaidX"
+  RAID_X_HOME="$SCRIPT_DIR/RaidX"
 fi
 
 if [[ "$MODE" == "dev" ]]; then
